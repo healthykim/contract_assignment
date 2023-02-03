@@ -64,9 +64,10 @@ contract Bank {
 
     } // 출금 (원금 + 이자)
 	
-	function amountOf(address) public view {
-
-    } // 현재 원금 확인
+	// 현재 원금 확인
+	function amountOf(address owner) public view returns(uint256) {
+        return accounts[owner].balance;
+    } 
 	
 	function rewards(address) public view {
 
