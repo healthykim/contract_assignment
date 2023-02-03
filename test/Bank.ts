@@ -55,4 +55,25 @@ describe("Bank", function() {
             assert.exists(recipt.events?.find((e) =>  e.event === "DEPOSIT" && e.args?.["amount"].toString() === depositAmount.toString()), "Wrong event");
         })
     })
+
+    describe("AmountOf", async function() {
+        it("Return correct balance of address(ERC20)", async function () {
+            // deposit
+            const depositAmount = ethers.utils.parseUnits("100", await someToken.decimals());
+            await bank.connect(accounts[1]).deposit(depositAmount, "STK");
+
+            // check amoutOf
+            const STKbalance = await bank.amountOf(accounts[1].getAddress());
+            assert.equal(STKbalance.toString(), depositAmount.toString());
+        })
+        it("Return correct balance of address(ETH)", async function () {
+            // deposit
+            const depositAmount = ethers.utils.parseEther("100");
+            await bank.connect(accounts[1]).deposit(0, "ETH", {value: depositAmount});
+
+            // check amoutOf
+            const ETHbalance = await bank.amountOf(accounts[1].getAddress());
+            assert.equal(ETHbalance.toString(), depositAmount.toString());
+        })
+    })
 })
