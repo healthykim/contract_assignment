@@ -60,16 +60,19 @@ contract Bank {
     }
 	
 	
-	function withdraw() public {
+	// function withdraw() public {
 
-    } // 출금 (원금 + 이자)
+    // } // 출금 (원금 + 이자)
 	
 	// 현재 원금 확인
 	function amountOf(address owner) public view returns(uint256) {
         return accounts[owner].balance;
     } 
 	
-	function rewards(address) public view {
+	// function rewards(address) public view {
 
-    } // 현재 rewards 확인 (원금 외의 이자로 받는 금액)
+    // } // 현재 rewards 확인 (원금 외의 이자로 받는 금액)
+
+    receive() external payable {}
+
 }
