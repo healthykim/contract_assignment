@@ -69,9 +69,20 @@ contract Bank {
         return accounts[owner].balance;
     } 
 	
-	// function rewards(address) public view {
+    // 현재 rewards 확인 (원금 외의 이자로 받는 금액) 
+	function rewards(address owner) public view returns(uint256) {
+        require(accounts[owner].balance != 0, "[Rewards] Nothing to reward");
 
-    // } // 현재 rewards 확인 (원금 외의 이자로 받는 금액)
+        uint256 day = (block.timestamp - accounts[owner].timeStamp)/(60 * 60 * 24);
+        
+        uint256 reward = accounts[owner].balance;
+        for(uint i=0; i<day; i++) {
+            reward = reward + reward * 2 / 100;
+        }
+        reward = reward - accounts[owner].balance;
+        return reward;
+    } 
+
 
     receive() external payable {}
 
