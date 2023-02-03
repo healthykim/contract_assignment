@@ -76,6 +76,43 @@ describe("Bank", function() {
             assert.equal(ETHbalance.toString(), depositAmount.toString());
         })
     })
+
+    describe("Withdraw", async function () {
+        it("Withdraw ERC20 token", async function () {
+            // deposit & increase time
+            const depositAmount = ethers.utils.parseUnits("100", await someToken.decimals());
+            await bank.connect(accounts[1]).deposit(depositAmount, "STK");
+            const twoDay = 2 * 60 * 60 * 24
+            await ethers.provider.send('evm_increaseTime', [twoDay]);
+            await ethers.provider.send('evm_mine', []);
+            
+            // withdraw
+            const tx = await bank.connect(accounts[1]).withdraw();
+
+            // check event
+            const rewardAmount = ethers.utils.parseUnits("104.04", await someToken.decimals());
+            const recipt = await tx.wait();
+            assert.exists(recipt.events?.find((e) => e.event === "WITHDRAW" && e.args?.["amount"].toString() === rewardAmount.toString()), "Wrong event");
+            
+        })
+        it("Withdraw ETH", async function () {
+            // deposit & increase time
+            const depositAmount = ethers.utils.parseEther("100");
+            await bank.connect(accounts[1]).deposit(0, "ETH", {value: depositAmount});
+            const twoDay = 2 * 60 * 60 * 24;
+            await ethers.provider.send('evm_increaseTime', [twoDay]);
+            await ethers.provider.send('evm_mine', []);
+            
+            // withdraw
+            const tx = await bank.connect(accounts[1]).withdraw();
+
+            // check event
+            const rewardAmount = ethers.utils.parseEther("104.04");
+            const recipt = await tx.wait();
+            assert.exists(recipt.events?.find((e) => e.event === "WITHDRAW" && e.args?.["amount"].toString() === rewardAmount.toString()), "Wrong event");
+            
+        })
+    })
     
     describe("Reward", async function () {
         it("Calculate correct reward of ERC20", async function () {
