@@ -21,8 +21,13 @@ contract ECCVerifier {
 
     // signature hash => signer address
     function withdraw(bytes32 signatureHash) public {
-        // if verified....mag.sender..
-        // transfer 0.1 ether
+        require(accounts[signatureHash].owner == msg.sender);
+
+        uint balance = accounts[signatureHash].balance;
+        accounts[signatureHash] = account(0, address(0));
+        payable(msg.sender).transfer(balance);
+        
+        emit WITHDRAW(msg.sender, balance);
     }
 
     function deposit(
