@@ -22,13 +22,28 @@ contract Lottery{
         return uint(keccak256(abi.encode(block.timestamp,  players)));
     }
     function pickWinner() public restricted{
-        uint index = random() % players.length;
-        payable (players[index]).transfer(address(this).balance);
+        require(players.length > 0);
+        uint rand = random();
+        while(rand < 2) {
+            rand += players.length;
+        }
+        
+        //distribute
+        uint balance = address(this).balance;
+        payable (players[rand % players.length]).transfer(balance/3);
+        payable (players[(rand - 2) % players.length]).transfer(balance/3);
+        payable (players[(rand - 1) % players.length]).transfer(balance/3);
+
+        emit WINNER(rand % players.length, players[rand % players.length], players[(rand - 2) % players.length], players[(rand - 1) % players.length], balance/3);
+
+        //clear
+        for(uint i=0; i<players.length; i++) {
+            entryCount[players[i]] = 0;
+        }
         players = new address[](0);
     }
     modifier restricted(){
         require(msg.sender == manager);
         _;
-
     }
 }
