@@ -60,9 +60,36 @@ contract Bank {
     }
 	
 	
-	// function withdraw() public {
+    // 출금 (원금 + 이자)
+	function withdraw() external {
+        require(accounts[msg.sender].balance != 0, "[Withdraw] Nothing to withdraw");
+        if(accounts[msg.sender].tokenAddress == address(0)) {
+            withdrawETH(msg.sender);
+            return;
+        }
+        withdrawERC20(msg.sender);
+    }
 
-    // } // 출금 (원금 + 이자)
+    function withdrawETH(address owner) internal {
+        account memory ownerAccount = accounts[owner];
+        uint256 amount = ownerAccount.balance + rewards(owner);
+        
+        accounts[owner] = account(0, 0, address(0));
+        payable(owner).transfer(amount);
+
+        emit WITHDRAW(owner, amount);
+    }
+
+    function withdrawERC20(address owner) internal {
+        account memory ownerAccount = accounts[owner];
+        uint256 amount = ownerAccount.balance + rewards(owner);
+        address tokenAddress = ownerAccount.tokenAddress;
+        
+        accounts[owner] = account(0, 0, address(0));
+        ERC20(tokenAddress).transfer(owner, amount);
+
+        emit WITHDRAW(owner, amount);
+    }
 	
 	// 현재 원금 확인
 	function amountOf(address owner) public view returns(uint256) {
