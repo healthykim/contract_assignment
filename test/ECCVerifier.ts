@@ -33,4 +33,22 @@ describe("ECDSABank", function() {
             assert.equal(event?.args?.["amount"].toString(), ethers.utils.parseEther("100").toString());
         })
     })
+
+    describe("Withdraw", async function () { 
+        it("withdraw with signature hash", async () => {
+            // deposit
+            const signature = await make_signature(accounts[1]);
+            let messageHash = ethers.utils.solidityKeccak256(["string"], ["test"]);
+            await verifier.connect(accounts[1]).deposit(messageHash, signature, {value: ethers.utils.parseEther("100")});
+            
+            // withdraw
+            let tx = await verifier.connect(accounts[1]).withdraw(ethers.utils.solidityKeccak256(["bytes"], [signature]));
+            let recipt = await tx.wait();
+
+            // check event
+            const event = recipt.events?.find((e)=>e.event === "WITHDRAW");
+            assert(event?.args?.["signer"], await accounts[1].getAddress());
+            assert(event?.args?.["amount"].toString(), ethers.utils.parseEther("100").toString());
+        })
+    })
 })
