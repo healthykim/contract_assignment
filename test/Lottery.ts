@@ -38,4 +38,38 @@ describe("Lottery", function() {
             await assertFailwithMessage(lottery.connect(accounts[1]).enter({value: entryFee}), "Cannot enter more than 3 times");
         })
     })
+    describe("pickWinner", async function() {
+        it("20 players game", async function () {
+            const signerAddress = await Promise.all(accounts.map(async (s) => {
+                await lottery.connect(s).enter({value: entryFee});
+                return await s.getAddress();
+            }));
+            
+            // pick winner
+            let tx = await lottery.connect(accounts[0]).pickWinner();
+            let r = await tx.wait();
+
+            // check event
+            let event = r.events?.find((e)=> e.event === "WINNER");
+            const index = parseInt(event?.args?.["index"].toString())
+            assert.equal(event?.args?.["player1"], signerAddress[index]);
+            assert.equal(event?.args?.["player2"], signerAddress[(index-2+signerAddress.length)%signerAddress.length]);
+            assert.equal(event?.args?.["player3"], signerAddress[(index-1+signerAddress.length)%signerAddress.length]);            
+        })
+        it("One player game", async function () {
+            await lottery.connect(accounts[1]).enter({value: entryFee});
+            const addr = await accounts[1].getAddress();
+            
+            // pick winner
+            let tx = await lottery.connect(accounts[0]).pickWinner();
+            let r = await tx.wait();
+
+            // check event
+            let event = r.events?.find((e)=> e.event === "WINNER");
+            const index = parseInt(event?.args?.["index"].toString())
+            assert.equal(event?.args?.["player1"], addr);
+            assert.equal(event?.args?.["player1"], addr);
+            assert.equal(event?.args?.["player1"], addr);     
+        })
+    })
 })
