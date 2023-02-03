@@ -76,4 +76,29 @@ describe("Bank", function() {
             assert.equal(ETHbalance.toString(), depositAmount.toString());
         })
     })
+    
+    describe("Reward", async function () {
+        it("Calculate correct reward of ERC20", async function () {
+            // deposit & increase time
+            await bank.connect(accounts[1]).deposit(ethers.utils.parseUnits("100", await someToken.decimals()), "STK");
+            const twoDay = 2 * 60 * 60 * 24;
+            await ethers.provider.send('evm_increaseTime', [twoDay]);
+            await ethers.provider.send('evm_mine', []);
+
+            // check reward
+            const reward = await bank.rewards(accounts[1].getAddress());
+            assert.equal(reward.toString(), ethers.utils.parseUnits("4.04", await someToken.decimals()).toString(), "");
+        })
+        it("Calculate correct reward of ETH", async function () {
+            // deposit & increase time
+            await bank.connect(accounts[1]).deposit(0, "ETH", {value: ethers.utils.parseUnits("100", "ether")});
+            const twoDay = 2 * 60 * 60 * 24;
+            await ethers.provider.send('evm_increaseTime', [twoDay]);
+            await ethers.provider.send('evm_mine', []);
+
+            // check reward
+            const reward = await bank.rewards(accounts[1].getAddress());
+            assert.equal(reward.toString(), ethers.utils.parseEther("4.04").toString(), "");
+        })
+    })
 })
