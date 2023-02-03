@@ -71,5 +71,27 @@ describe("Lottery", function() {
             assert.equal(event?.args?.["player1"], addr);
             assert.equal(event?.args?.["player1"], addr);     
         })
+        it("Play multiple game", async function () {
+            for(let i=0; i<3; i++) {
+                await lottery.connect(accounts[i]).lottery();
+                const players = accounts.slice(0, 3);
+
+                const signerAddress = await Promise.all(players.map(async (s) => {
+                    await lottery.connect(s).enter({value: entryFee});
+                    return await s.getAddress();
+                }));
+                
+                // pick winner
+                let tx = await lottery.connect(accounts[i]).pickWinner();
+                let r = await tx.wait();
+
+                // check event
+                let event = r.events?.find((e)=> e.event === "WINNER");
+                const index = parseInt(event?.args?.["index"].toString())
+                assert.equal(event?.args?.["player1"], signerAddress[index]);
+                assert.equal(event?.args?.["player2"], signerAddress[(index-2+signerAddress.length)%signerAddress.length]);
+                assert.equal(event?.args?.["player3"], signerAddress[(index-1+signerAddress.length)%signerAddress.length]);    
+            }
+        })
     })
 })
